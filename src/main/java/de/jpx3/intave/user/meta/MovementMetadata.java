@@ -87,8 +87,7 @@ public final class MovementMetadata implements SimulationEnvironment {
   public String verifiedPositionOrigin;
   public double lastPositionX, lastPositionY, lastPositionZ;
   public double positionX, positionY, positionZ;
-  public boolean sprinting, lastSprinting, /*sprintMove, lastSprintMove,*/
-    hasSprintSpeed, sneaking, lastSneaking;
+  public boolean sprinting, lastSprinting, hasSprintSpeed, sneaking, lastSneaking;
   public int sprintSneakFaults;
   public boolean acceptSneakFaults = true;
   public int ticksSneaking, ticksSprinting;
