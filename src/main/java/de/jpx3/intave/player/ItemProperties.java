@@ -1,6 +1,6 @@
 package de.jpx3.intave.player;
 
-import com.comphenix.protocol.utility.MinecraftVersion;
+import de.jpx3.intave.adapter.MinecraftVersion;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import de.jpx3.intave.adapter.ProtocolLibraryAdapter;

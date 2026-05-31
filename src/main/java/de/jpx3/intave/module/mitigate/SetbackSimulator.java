@@ -46,13 +46,12 @@ import static org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.NETHER_P
 import static org.bukkit.event.player.PlayerTeleportEvent.TeleportCause.UNKNOWN;
 
 public final class SetbackSimulator extends Module {
-  private Physics physicsCheck;
   private InternalTeleportApplier teleportMethodContainer;
   private boolean closeInventoryOnDetection;
 
   @Override
   public void enable() {
-    this.physicsCheck = plugin.checks().searchCheck(Physics.class);
+    Physics physicsCheck = plugin.checks().searchCheck(Physics.class);
     this.closeInventoryOnDetection = physicsCheck.closeInventoryOnDetection();
     this.teleportMethodContainer = new InternalTeleportApplier();
   }
@@ -468,13 +467,8 @@ public final class SetbackSimulator extends Module {
   }
 
   private void updateMovementStatus(User user) {
-    Player player = user.player();
-    World world = player.getWorld();
     MovementMetadata movementData = user.meta().movement();
     movementData.inWater = Collision.rasterizedLiquidPresentSearch(user, movementData.boundingBox());
-    if (movementData.inWater) {
-      movementData.inWaterSinceFallDamagePostCheck = true;
-    }
   }
 
   private synchronized void rotationlessTeleport(Player player, Location to, double motionY, float nativeYaw, float nativePitch) {

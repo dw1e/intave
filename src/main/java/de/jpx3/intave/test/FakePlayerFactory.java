@@ -1,18 +1,21 @@
 package de.jpx3.intave.test;
 
-import com.comphenix.net.bytebuddy.description.ByteCodeElement;
-import com.comphenix.net.bytebuddy.description.modifier.ModifierContributor;
-import com.comphenix.net.bytebuddy.description.modifier.Visibility;
-import com.comphenix.net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import com.comphenix.net.bytebuddy.implementation.FieldAccessor;
-import com.comphenix.net.bytebuddy.implementation.MethodCall;
-import com.comphenix.net.bytebuddy.implementation.MethodDelegation;
-import com.comphenix.net.bytebuddy.implementation.bind.annotation.*;
-import com.comphenix.net.bytebuddy.matcher.ElementMatcher;
-import com.comphenix.net.bytebuddy.matcher.ElementMatchers;
-import com.comphenix.protocol.utility.ByteBuddyFactory;
+import com.comphenix.protocol.utility.ByteBuddyGenerated;
 import com.google.common.collect.ImmutableList;
 import de.jpx3.intave.IntavePlugin;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.ByteCodeElement;
+import net.bytebuddy.description.modifier.ModifierContributor;
+import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
+import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.annotation.*;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -66,10 +69,10 @@ public final class FakePlayerFactory {
         throw new UnsupportedOperationException("Method " + methodName + " is not supported for this testplayer");
       }
     });
-    ElementMatcher.Junction<ByteCodeElement> callbackFilter = ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class).or(ElementMatchers.isDeclaredBy(FakePlayer.class)));
+    ElementMatcher.Junction<ByteCodeElement> callbackFilter = ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class)
+      .or(ElementMatchers.isDeclaredBy(FakePlayer.class)));
     try {
-      return ByteBuddyFactory.getInstance()
-        .createSubclass(FakePlayer.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
+      return createSubclass(FakePlayer.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
         .name(FakePlayerFactory.class.getPackage().getName() + ".Generator" + UUID.randomUUID().toString().substring(0,8) + COUNTER++)
         .implement(new Type[]{Player.class})
         .defineField("server", Server.class, new ModifierContributor.ForField[]{Visibility.PRIVATE})
@@ -79,7 +82,7 @@ public final class FakePlayerFactory {
         .method(callbackFilter)
         .intercept(implementation)
         .make()
-        .load(IntavePlugin.class.getClassLoader(), com.comphenix.net.bytebuddy.dynamic.loading.ClassLoadingStrategy.Default.INJECTION)
+        .load(IntavePlugin.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
         .getLoaded()
         .getDeclaredConstructor(Server.class);
     } catch (NoSuchMethodException var3) {
@@ -87,6 +90,10 @@ public final class FakePlayerFactory {
     } catch (Exception exception) {
       throw new RuntimeException(exception);
     }
+  }
+
+  private static <T> DynamicType.Builder.MethodDefinition.ImplementationDefinition.Optional<T> createSubclass(Class<T> clz, ConstructorStrategy.Default constructorStrategy) {
+    return (new ByteBuddy()).subclass(clz, constructorStrategy).implement(ByteBuddyGenerated.class);
   }
 
   private static final UUID FAKE_TEST_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");

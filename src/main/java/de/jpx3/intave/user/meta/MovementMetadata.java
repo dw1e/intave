@@ -79,7 +79,6 @@ public final class MovementMetadata implements SimulationEnvironment {
   public boolean collidedHorizontally, collidedVertically;
   public float artificialFallDistance;
   public boolean dealCustomFallDamage;
-  public boolean inWaterSinceFallDamagePostCheck;
   public double gravity;
   public boolean outsideBorder = true;
   public Vector lookVector = new Vector();
@@ -1120,8 +1119,13 @@ public final class MovementMetadata implements SimulationEnvironment {
   }
 
   @Override
-  public SimulationEnvironment unmodifiable() {
-    return UnmodifiableSimulationEnvironmentView.of(this);
+  public Fluid interactingFluid() {
+    return interactingFluid;
+  }
+
+  @Override
+  public void setInteractingFluid(Fluid interactingFluid) {
+    this.interactingFluid = interactingFluid;
   }
 
   @Override
@@ -1271,6 +1275,15 @@ public final class MovementMetadata implements SimulationEnvironment {
   @Override
   public boolean inWater() {
     return inWater;
+  }
+
+  @Override
+  public void setInWater(boolean inWater) {
+    this.inWater = inWater;
+    if (inWater) {
+      pastWaterMovement = 0;
+      artificialFallDistance = 0;
+    }
   }
 
   @Deprecated

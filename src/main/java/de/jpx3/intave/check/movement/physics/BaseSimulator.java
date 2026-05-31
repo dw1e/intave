@@ -3,6 +3,7 @@ package de.jpx3.intave.check.movement.physics;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.adapter.MinecraftVersions;
 import de.jpx3.intave.block.access.VolatileBlockAccess;
+import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.block.fluid.Fluids;
 import de.jpx3.intave.block.physics.BlockPhysics;
 import de.jpx3.intave.block.physics.BlockProperties;
@@ -42,42 +43,37 @@ class BaseSimulator extends Simulator {
     User user, Motion motion,
     SimulationEnvironment environment
   ) {
-    handleSneakInWater(user, environment);
+    handleSneakInWater(user, motion, environment);
     updateAquatics(user, environment);
     simulateMotionClamp(user);
   }
 
-  private void updateAquatics(User user, SimulationEnvironment environment) {
-    updateInWater(user);
-    updateInLava(user);
-    environment.updateEyesInWater();
-  }
-
-  private void handleSneakInWater(User user, SimulationEnvironment environment) {
+  private void handleSneakInWater(User user, Motion motion, SimulationEnvironment environment) {
     ProtocolMetadata protocol = user.meta().protocol();
     if (protocol.waterUpdate() && environment.isSneaking() && environment.inWater()) {
-      environment.setBaseMotionY(environment.baseMotionY() - 0.04F);
+//      environment.setBaseMotionY(environment.baseMotionY() - 0.04F);
+      motion.motionY -= 0.04F;
     }
   }
 
-  private void updateInWater(User user) {
+  private void updateAquatics(User user, SimulationEnvironment environment) {
+    updateInWater(user, environment);
+    updateInLava(user, environment);
+    environment.updateEyesInWater();
+  }
+  
+  private void updateInWater(User user, SimulationEnvironment environment) {
     MetadataBundle meta = user.meta();
     ProtocolMetadata clientData = meta.protocol();
-    MovementMetadata movementData = meta.movement();
-    BoundingBox boundingBox = movementData.boundingBox();
+    BoundingBox boundingBox = environment.boundingBox();
     if (!clientData.waterUpdate()) {
       boundingBox = boundingBox.grow(0.0D, -0.4000000059604645D, 0.0D);
     }
     boundingBox = boundingBox.shrink(0.001D);
-    movementData.inWater = user.waterflow().applyFlowTo(user, boundingBox);
-    if (movementData.inWater) {
-      movementData.inWaterSinceFallDamagePostCheck = true;
-      movementData.pastWaterMovement = 0;
-      movementData.artificialFallDistance = 0;
-    }
+    environment.setInWater(user.waterflow().applyFlowTo(user, boundingBox));
   }
 
-  private void updateInLava(User user) {
+  private void updateInLava(User user, SimulationEnvironment environment) {
     MovementMetadata movementData = user.meta().movement();
     if (movementData.inLava()) {
       movementData.pastLavaMovement = 0;

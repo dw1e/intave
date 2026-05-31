@@ -1,5 +1,6 @@
 package de.jpx3.intave.check.movement.physics.environment;
 
+import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.player.collider.complex.ColliderResult;
 import de.jpx3.intave.share.BoundingBox;
@@ -105,6 +106,7 @@ public interface SimulationEnvironment {
   boolean isSneaking();
   boolean isSprinting();
   boolean inWater();
+  void setInWater(boolean inWater);
   boolean inLava();
   boolean inWeb();
   int pastInWeb();
@@ -165,6 +167,12 @@ public interface SimulationEnvironment {
   float width();
   double heightRounded();
   double widthRounded();
+  float eyeHeight();
 
-  SimulationEnvironment unmodifiable();
+  Fluid interactingFluid();
+  void setInteractingFluid(Fluid interactingFluid);
+
+  default SimulationEnvironment unmodifiable() {
+    return UnmodifiableSimulationEnvironmentView.of(this);
+  }
 }

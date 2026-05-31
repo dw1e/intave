@@ -1,5 +1,6 @@
 package de.jpx3.intave.check.movement.physics.environment;
 
+import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.player.collider.complex.ColliderResult;
 import de.jpx3.intave.share.BoundingBox;
@@ -252,6 +253,11 @@ public final class UnmodifiableSimulationEnvironmentView implements SimulationEn
 	}
 
 	@Override
+	public void setInWater(boolean inWater) {
+		throw new UnsupportedOperationException("Cannot modify unmodifiable view");
+	}
+
+	@Override
 	public boolean inLava() {
 		return delegate.inLava();
 	}
@@ -474,6 +480,21 @@ public final class UnmodifiableSimulationEnvironmentView implements SimulationEn
 	@Override
 	public double widthRounded() {
 		return delegate.widthRounded();
+	}
+
+	@Override
+	public float eyeHeight() {
+		return delegate.eyeHeight();
+	}
+
+	@Override
+	public Fluid interactingFluid() {
+		return delegate.interactingFluid();
+	}
+
+	@Override
+	public void setInteractingFluid(Fluid interactingFluid) {
+		throw new UnsupportedOperationException("Cannot modify unmodifiable view");
 	}
 
 	@Override

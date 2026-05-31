@@ -1,5 +1,6 @@
 package de.jpx3.intave.check.movement.physics.environment;
 
+import de.jpx3.intave.block.fluid.Fluid;
 import de.jpx3.intave.check.movement.physics.Pose;
 import de.jpx3.intave.player.collider.complex.ColliderResult;
 import de.jpx3.intave.share.BoundingBox;
@@ -35,7 +36,7 @@ public final class TestSimulationEnvironment implements SimulationEnvironment {
   private boolean onGround;
   private boolean lastOnGround;
 
-  private final Motion motionProcessorContext = new Motion();
+  private Fluid interactingFluid;
   private BoundingBox boundingBox = BoundingBox.fromBounds(0, 0, 0, 0, 0, 0);
 
   private Vector motionMultiplier;
@@ -585,6 +586,21 @@ public final class TestSimulationEnvironment implements SimulationEnvironment {
   @Override
   public double widthRounded() {
     return width;
+  }
+
+  @Override
+  public float eyeHeight() {
+    return height - 0.08F;
+  }
+
+  @Override
+  public Fluid interactingFluid() {
+    return interactingFluid;
+  }
+
+  @Override
+  public void setInteractingFluid(Fluid interactingFluid) {
+    this.interactingFluid = interactingFluid;
   }
 
   @Override
