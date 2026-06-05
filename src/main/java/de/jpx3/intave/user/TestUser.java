@@ -46,7 +46,7 @@ final class TestUser implements User {
       this.storage = Storages.emptyPlayerStorageFor(id);
     }
     this.callback = callback;
-    this.meta = new MetadataBundle(null, this);
+    this.meta = new MetadataBundle(player, this);
     Integer protocolVersion = (Integer) callback.apply("protocolVersion");
     if (protocolVersion == null) {
       protocolVersion = 0;

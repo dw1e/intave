@@ -193,8 +193,6 @@ public final class MovementDispatcher extends Module {
   public void receiveWorldChange(PlayerChangedWorldEvent event) {
     Player player = event.getPlayer();
     User user = UserRepository.userOf(player);
-    MovementMetadata movementData = user.meta().movement();
-    movementData.updateWorld();
     user.blockCache().invalidateAll();
     user.refreshSprintState();
   }

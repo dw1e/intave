@@ -4,8 +4,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.WrappedAttribute;
-import com.comphenix.protocol.wrappers.WrappedAttributeModifier;
 import de.jpx3.intave.IntaveControl;
 import de.jpx3.intave.IntavePlugin;
 import de.jpx3.intave.adapter.MinecraftVersions;
@@ -33,6 +31,8 @@ import de.jpx3.intave.module.tracker.player.PacketLogging;
 import de.jpx3.intave.packet.Relative;
 import de.jpx3.intave.player.Effects;
 import de.jpx3.intave.player.ItemProperties;
+import de.jpx3.intave.player.attribute.WrappedAttribute;
+import de.jpx3.intave.player.attribute.WrappedAttributeModifier;
 import de.jpx3.intave.player.collider.complex.ColliderResult;
 import de.jpx3.intave.share.*;
 import de.jpx3.intave.share.Rotation;
@@ -44,22 +44,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.comphenix.protocol.wrappers.WrappedAttributeModifier.Operation.ADD_PERCENTAGE;
 import static de.jpx3.intave.IntaveControl.REPLACE_JOAP_SETBACK_WITH_CM;
 import static de.jpx3.intave.check.movement.physics.MovementCharacteristics.resolveFriction;
-import static de.jpx3.intave.reflect.access.ReflectiveHandleAccess.handleOf;
+import static de.jpx3.intave.player.attribute.WrappedAttributeModifier.Operation.ADD_PERCENTAGE;
 import static de.jpx3.intave.share.ClientMath.*;
 import static de.jpx3.intave.user.meta.ProtocolMetadata.*;
 
 public final class MovementMetadata implements SimulationEnvironment {
   public static final WrappedAttributeModifier SPRINTING_MODIFIER = WrappedAttributeModifier.newBuilder(
     UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D")
-  ).amount(0.3F).operation(ADD_PERCENTAGE).name("Sprint Boost").build();
+  ).withAmount(0.3F).withOperation(ADD_PERCENTAGE).withName("Sprint Boost").build();
   private static final boolean ELYTRA_ENABLED = MinecraftVersions.VER1_9_0.atOrAbove();
   private final Player player;
   private final User user;
@@ -214,7 +212,6 @@ public final class MovementMetadata implements SimulationEnvironment {
   public int afterRespawnTicks = 0;
   public double lastRespawnX, lastRespawnY, lastRespawnZ;
   public boolean allowRespawnLeniency = false;
-  private volatile WeakReference<Object> nmsWorld;
   private boolean hasJumpFactor;
   private double resetMotion, frictionPosSubtraction;
   private double motionX, motionY, motionZ;
@@ -260,10 +257,13 @@ public final class MovementMetadata implements SimulationEnvironment {
 
   public void setup() {
     if (player != null) {
-      Synchronizer.synchronize(() -> this.elytraFlying = flyingWithElytra(player));
+      if (player.hasMetadata("intave.testplayer.gliding")) {
+        this.elytraFlying = player.getMetadata("intave.testplayer.gliding").get(0).asBoolean();
+      } else {
+        Synchronizer.synchronize(() -> this.elytraFlying = flyingWithElytra(player));
+      }
     }
     applyPlayerStats();
-    updateWorld();
     applyPlayerLocation();
   }
 
@@ -286,7 +286,11 @@ public final class MovementMetadata implements SimulationEnvironment {
   private void applyPlayerLocation() {
     Location location;
     if (player == null) {
-      location = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+      World world = null;
+      if (Bukkit.getServer() != null) {
+        world = Bukkit.getWorlds().get(0);
+      }
+      location = new Location(world, 0, 0, 0);
     } else {
       location = player.getLocation();
       artificialFallDistance = player.getFallDistance();
@@ -308,14 +312,6 @@ public final class MovementMetadata implements SimulationEnvironment {
     }
     setSprinting(player.isSprinting());
     sneaking = player.isSneaking();
-  }
-
-  public void updateWorld() {
-    if (player == null) {
-      nmsWorld = new WeakReference<>(handleOf(Bukkit.getWorlds().get(0)));
-      return;
-    }
-    nmsWorld = new WeakReference<>(handleOf(player.getWorld()));
   }
 
   @DispatchTarget
@@ -1160,10 +1156,6 @@ public final class MovementMetadata implements SimulationEnvironment {
 
   public Entity ridingEntity() {
     return vehicle;
-  }
-
-  public Object nmsWorld() {
-    return nmsWorld.get();
   }
 
   public Location verifiedLocation() {
