@@ -32,6 +32,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.UUID;
 
+import static org.bukkit.GameMode.*;
+
 public final class ExamplePhysicsTest {
   private static final UUID EMPTY_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
@@ -99,7 +101,7 @@ public final class ExamplePhysicsTest {
           case "getFallDistance":
             return 0.0f;
           case "getGameMode":
-            return org.bukkit.GameMode.SURVIVAL;
+            return SURVIVAL;
           case "getFlySpeed":
           case "getWalkSpeed":
             return 0.2f;
@@ -111,9 +113,6 @@ public final class ExamplePhysicsTest {
     );
 
     int protocolVersion = 47;
-    player.setMetadata("intave.testplayer.gliding", IntaveMetadataValue.of(false));
-    player.setMetadata("intave.testplayer.protocolversion", IntaveMetadataValue.of(protocolVersion));
-
     MockFullBlockStaticPlane plane = new MockFullBlockStaticPlane();
     plane.horizontalFill(1);
     testUser = UserFactory.createTestUserFor(player, s -> {

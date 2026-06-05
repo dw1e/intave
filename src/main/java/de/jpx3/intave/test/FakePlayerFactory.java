@@ -17,6 +17,7 @@ import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
@@ -27,6 +28,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiFunction;
+
+import static org.bukkit.GameMode.SURVIVAL;
 
 // this class was inspired by protocollib
 // big <3 to them
@@ -63,6 +66,38 @@ public final class FakePlayerFactory {
       }
       return null;
     });
+
+    // default fallbacks
+    methods.add((methodName, args) -> {
+      switch (methodName) {
+        case "getLocation":
+          return new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        case "getHealth":
+          return 20.0;
+        case "getFoodLevel":
+          return 20;
+        case "isFlying":
+        case "getAllowFlight":
+        case "isSprinting":
+        case "isSneaking":
+          return false;
+        case "getFallDistance":
+          return 0.0f;
+        case "getGameMode":
+          return SURVIVAL;
+        case "getFlySpeed":
+        case "getWalkSpeed":
+          return 0.2f;
+        case "getEntityId":
+          return 100000;
+        case "getInventory":
+          return new MockEmptyInventory();
+        case "getActivePotionEffects":
+          return Collections.emptyList();
+      }
+      return null;
+    });
+
     try {
       return (Player) playerConstructorForMethods(methods).newInstance(Bukkit.getServer());
     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {

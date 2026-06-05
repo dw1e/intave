@@ -15,6 +15,7 @@ import de.jpx3.intave.module.violation.placeholder.PlayerContext;
 import de.jpx3.intave.module.violation.placeholder.UserContext;
 import de.jpx3.intave.player.collider.complex.Collider;
 import de.jpx3.intave.player.collider.simple.SimpleCollider;
+import de.jpx3.intave.player.meta.IntaveMetadataValue;
 import de.jpx3.intave.user.meta.CheckCustomMetadata;
 import de.jpx3.intave.user.meta.MetadataBundle;
 import de.jpx3.intave.user.permission.PermissionCache;
@@ -41,16 +42,22 @@ final class TestUser implements User {
 
   TestUser(Player player, Function<String, Object> callback) {
     this.player = player;
+
+    Integer protocolVersion = (Integer) callback.apply("protocolVersion");
+    if (protocolVersion == null) {
+      protocolVersion = 0;
+    }
+
+    player.setMetadata("intave.testplayer.gliding", IntaveMetadataValue.of(false));
+    player.setMetadata("intave.testplayer.protocolversion", IntaveMetadataValue.of(protocolVersion));
+
     UUID id = player.getUniqueId();
     if (id != null) {
       this.storage = Storages.emptyPlayerStorageFor(id);
     }
     this.callback = callback;
     this.meta = new MetadataBundle(player, this);
-    Integer protocolVersion = (Integer) callback.apply("protocolVersion");
-    if (protocolVersion == null) {
-      protocolVersion = 0;
-    }
+
     this.poseSizes = Pose.poseSizesByVersion(protocolVersion);
     meta.setup();
   }
