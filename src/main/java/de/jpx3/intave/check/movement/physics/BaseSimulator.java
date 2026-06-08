@@ -44,7 +44,7 @@ class BaseSimulator extends Simulator {
     SimulationEnvironment environment
   ) {
     handleSneakInWater(user, baseMotion, environment);
-    updateAquatics(user, environment);
+    updateAquatics(user, baseMotion, environment);
     simulateMotionClamp(user, baseMotion, environment);
   }
 
@@ -55,13 +55,13 @@ class BaseSimulator extends Simulator {
     }
   }
 
-  private void updateAquatics(User user, SimulationEnvironment environment) {
-    updateInWater(user, environment);
+  private void updateAquatics(User user, Motion baseMotion, SimulationEnvironment environment) {
+    updateInWater(user, baseMotion, environment);
     updateInLava(user, environment);
     environment.updateEyesInWater();
   }
   
-  private void updateInWater(User user, SimulationEnvironment environment) {
+  private void updateInWater(User user, Motion baseMotion, SimulationEnvironment environment) {
     MetadataBundle meta = user.meta();
     ProtocolMetadata clientData = meta.protocol();
     BoundingBox boundingBox = environment.boundingBox();
@@ -69,7 +69,7 @@ class BaseSimulator extends Simulator {
       boundingBox = boundingBox.grow(0.0D, -0.4000000059604645D, 0.0D);
     }
     boundingBox = boundingBox.shrink(0.001D);
-    environment.setInWater(user.waterflow().applyFlowTo(user, boundingBox));
+    environment.setInWater(user.waterflow().applyFlowTo(user, environment, baseMotion, boundingBox));
   }
 
   private void updateInLava(User user, SimulationEnvironment environment) {
@@ -173,7 +173,7 @@ class BaseSimulator extends Simulator {
       }
     }
 
-    if (jumped && environment.lastOnGround()) {
+    if (jumped) {
       boolean allowJumpInLiquid = false;
       if (
         protocol.waterUpdate() && inWater &&
@@ -191,7 +191,7 @@ class BaseSimulator extends Simulator {
       } else if (inLava) {
         // #handleJumpLava
         motion.motionY += 0.04F;
-      } else {
+      } else if (environment.lastOnGround()) {
         motion.motionY = user.protocolVersion() >= 768 ?
           Math.max(environment.jumpMotion(), meta.movement().baseMotionY) :
           environment.jumpMotion();
@@ -531,7 +531,9 @@ class BaseSimulator extends Simulator {
   private void updateFallStateAfter(User user, double motionY, boolean onGround) {
     MovementMetadata movementData = user.meta().movement();
     if (!movementData.inWater) {
-      updateAquatics(user, movementData);
+      Motion baseMotion = movementData.mutableBaseMotionCopy();
+      updateAquatics(user, baseMotion, movementData);
+      movementData.setBaseMotion(baseMotion);
     }
     if (onGround) {
       movementData.artificialFallDistance = 0;
