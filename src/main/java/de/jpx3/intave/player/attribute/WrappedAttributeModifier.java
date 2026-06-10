@@ -53,16 +53,49 @@ public final class WrappedAttributeModifier {
 			.collect(Collectors.toSet());
 	}
 
+	private final static boolean KEY_EXISTS;
+
+	static {
+		boolean keyExists;
+		try {
+			keyExists = com.comphenix.protocol.wrappers.WrappedAttributeModifier.class.getDeclaredMethod("getKey") != null;
+		} catch (Throwable e) {
+			keyExists = false;
+		}
+		KEY_EXISTS = keyExists;
+	}
+
 	private static WrappedAttributeModifier fromProtocolLib(
 		com.comphenix.protocol.wrappers.WrappedAttributeModifier protocolLibModifier
 	) {
-		return new WrappedAttributeModifier(
-			protocolLibModifier.getKey(),
-			protocolLibModifier.getUUID(),
-			protocolLibModifier.getName(),
-			Operation.fromId(protocolLibModifier.getOperation().getId()),
-			protocolLibModifier.getAmount()
-		);
+		if (KEY_EXISTS) {
+			return new WrappedAttributeModifier(
+				protocolLibModifier.getKey(),
+				protocolLibModifier.getUUID(),
+				protocolLibModifier.getName(),
+				Operation.fromId(protocolLibModifier.getOperation().getId()),
+				protocolLibModifier.getAmount()
+			);
+		} else {
+			return new WrappedAttributeModifier(
+				new MinecraftKey(protocolLibModifier.getName()),
+				protocolLibModifier.getUUID(),
+				protocolLibModifier.getName(),
+				Operation.fromId(protocolLibModifier.getOperation().getId()),
+				protocolLibModifier.getAmount()
+			);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "WrappedAttributeModifier{" +
+			"key=" + key +
+			", uuid=" + uuid +
+			", name='" + name + '\'' +
+			", operation=" + operation +
+			", amount=" + amount +
+			'}';
 	}
 
 	public static Builder newBuilder(UUID uuid) {
